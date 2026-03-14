@@ -1,0 +1,83 @@
+/* ============================================================
+   CoreInventory – Dashboard Stylesheet
+   Colours, shadows and layout match the exact spec provided.
+   Tailwind handles utility classes; this file adds only what
+   Tailwind cannot (keyframe animations, live dot, transitions).
+   ============================================================ */
+
+/* ── Card shadow – exact spec value ─────────────────────── */
+.card-shadow {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+              0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Card entrance animation ─────────────────────────────── */
+@keyframes cardFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-animate {
+  animation: cardFadeUp 0.4s ease both;
+}
+
+/* ── Stat-box hover lift ──────────────────────────────────── */
+.stat-box {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stat-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Number count-up flash ───────────────────────────────── */
+@keyframes numFlash {
+  0%   { opacity: 0.3; transform: scale(0.92); }
+  60%  { opacity: 1;   transform: scale(1.06); }
+  100% { opacity: 1;   transform: scale(1);    }
+}
+
+.num-flash {
+  animation: numFlash 0.35s ease both;
+}
+
+/* ── Live indicator dot pulse ────────────────────────────── */
+@keyframes livePulse {
+  0%, 100% { opacity: 1;   transform: scale(1);    }
+  50%       { opacity: 0.4; transform: scale(1.4);  }
+}
+
+.live-dot {
+  animation: livePulse 2s ease-in-out infinite;
+}
+
+/* ── Refresh icon spin ───────────────────────────────────── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 0.6s linear infinite;
+}
+
+/* ── Sidebar fade-in (slight delay after cards) ──────────── */
+aside {
+  animation: cardFadeUp 0.45s 0.2s ease both;
+}
+
+/* ── Smooth number transition placeholder ───────────────── */
+[id$="_receipts"],
+[id$="_deliveries"],
+[id$="_operations"] {
+  display: inline-block;
+  min-width: 1.5ch;
+  text-align: center;
+  transition: color 0.2s ease;
+}
