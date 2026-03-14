@@ -18,8 +18,8 @@ CoreInventory is a full-stack Inventory Management System (IMS) designed to help
 ## Demo Login Credentials
 To quickly explore the system, you can use the following demo account:
    ```bash
-   git clone <your-repository-url>
-   cd CoreInventory
+   Login ID: Myth12
+   Password: Myth@1234
    ```
 Use these credentials on the Login page after running the application locally.
 
