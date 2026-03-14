@@ -15,6 +15,14 @@ CoreInventory is a full-stack Inventory Management System (IMS) designed to help
   * **Internal Transfers:** Move inventory physically between warehouse locations internally.
 * **Contacts Directory:** A central hub to manage vendor and customer details.
 
+## Demo Login Credentials
+To quickly explore the system, you can use the following demo account:
+   ```bash
+   git clone <your-repository-url>
+   cd CoreInventory
+   ```
+Use these credentials on the Login page after running the application locally.
+
 ## 🛠️ Technology Stack
 
 * **Backend:** Python 3.10+, Flask, Flask-SQLAlchemy, Werkzeug
