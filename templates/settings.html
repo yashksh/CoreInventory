@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>CoreInventory - Settings</title>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1' }
+          },
+          fontFamily: { sans: ['Public Sans', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}"/>
+</head>
+
+<body class="bg-gray-50 text-gray-900 font-sans antialiased min-h-screen">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+
+<!-- HEADER -->
+<header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16 items-center">
+      <div class="flex-shrink-0 flex items-center">
+        <span class="text-2xl font-bold text-brand-600">CoreInventory</span>
+      </div>
+      <div class="hidden md:flex space-x-8 h-full items-center">
+        <a class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+           href="{{ url_for('dashboard.index') }}">Dashboard</a>
+        <a class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+           href="{{ url_for('operations.operations_page') }}">Operations</a>
+        <a class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+           href="{{ url_for('stock.stock_page') }}">Stock</a>
+        <a class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+           href="{{ url_for('operations.move_history_page') }}">Move History</a>
+        <a aria-current="page"
+           class="border-b-2 border-brand-500 text-gray-900 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+           href="{{ url_for('settings.settings_page') }}">Settings</a>
+      </div>
+      <div class="relative">
+        <button id="profileBtn" onclick="document.getElementById('profileDropdown').classList.toggle('hidden')" class="flex items-center gap-2 focus:outline-none">
+          <div class="h-9 w-9 rounded-full bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md hover:shadow-lg transition-shadow">{{ session['login_id'][0] | upper }}</div>
+        </button>
+        <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
+          <div class="px-4 py-3 border-b border-gray-100">
+            <p class="text-sm font-bold text-gray-900">{{ session['login_id'] }}</p>
+            <p class="text-xs text-gray-400">{{ session.get('email', '') }}</p>
+          </div>
+          <a href="{{ url_for('auth.logout') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"><span class="material-symbols-outlined text-[18px]">logout</span> Logout</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<!-- MAIN -->
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full flex-1">
+
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Settings</h1>
+    <p class="text-gray-500 mt-1">Manage warehouses, locations, and contacts.</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex gap-1 border-b border-gray-200 mb-6">
+    <button class="tab-btn px-5 py-3 text-sm font-semibold border-b-2 transition-all active" data-tab="warehouses">
+      <span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">warehouse</span>Warehouses</span>
+    </button>
+    <button class="tab-btn px-5 py-3 text-sm font-semibold border-b-2 transition-all" data-tab="locations">
+      <span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">location_on</span>Locations</span>
+    </button>
+    <button class="tab-btn px-5 py-3 text-sm font-semibold border-b-2 transition-all" data-tab="contacts">
+      <span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">contacts</span>Contacts</span>
+    </button>
+  </div>
+
+  <!-- ═══════ TAB: Warehouses ═══════ -->
+  <div class="tab-panel" id="panel-warehouses">
+    <div class="flex justify-end mb-4">
+      <button id="btnAddWH" class="flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white rounded-lg font-bold hover:bg-brand-700 transition-all text-sm">
+        <span class="material-symbols-outlined text-[18px]">add</span> Add Warehouse
+      </button>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 card-shadow overflow-hidden">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-gray-50">
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500 border-b">Name</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500 border-b">Short Code</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500 border-b">Address</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500 border-b text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for wh in warehouses %}
+          <tr class="hover:bg-brand-50/30 transition-colors">
+            <td class="px-6 py-4 font-semibold text-gray-900">{{ wh.name }}</td>
+            <td class="px-6 py-4"><span class="px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xs font-bold">{{ wh.short_code }}</span></td>
+            <td class="px-6 py-4 text-gray-600">{{ wh.address or '—' }}</td>
+            <td class="px-6 py-4 text-right">
+              <button class="p-2 text-gray-400 hover:text-brand-600 hover:bg-brand-100 rounded-lg transition-all btn-edit-wh"
+                      data-id="{{ wh.id }}" data-name="{{ wh.name }}" data-address="{{ wh.address or '' }}">
+                <span class="material-symbols-outlined text-[20px]">edit</span>
+              </button>
+              <button class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all btn-del-wh"
+                      data-id="{{ wh.id }}">
+                <span class="material-symbols-outlined text-[20px]">delete</span>
+              </button>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="px-6 py-12 text-center text-gray-400">No warehouses yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════ TAB: Locations ═══════ -->
+  <div class="tab-panel hidden" id="panel-locations">
+    <div class="flex justify-end mb-4">
+      <button id="btnAddLoc" class="flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white rounded-lg font-bold hover:bg-brand-700 transition-all text-sm">
+        <span class="material-symbols-outlined text-[18px]">add</span> Add Location
+      </button>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 card-shadow overflow-hidden">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-gray-50">
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500 border-b">Warehouse</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500 border-b">Name</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500 border-b">Short Code</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500 border-b text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for loc in locations %}
+          <tr class="hover:bg-brand-50/30 transition-colors">
+            <td class="px-6 py-4 text-gray-600">{{ loc.warehouse.name }}</td>
+            <td class="px-6 py-4 font-semibold text-gray-900">{{ loc.name }}</td>
+            <td class="px-6 py-4"><span class="px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xs font-bold">{{ loc.short_code }}</span></td>
+            <td class="px-6 py-4 text-right">
+              <button class="p-2 text-gray-400 hover:text-brand-600 hover:bg-brand-100 rounded-lg transition-all btn-edit-loc"
+                      data-id="{{ loc.id }}" data-name="{{ loc.name }}">
+                <span class="material-symbols-outlined text-[20px]">edit</span>
+              </button>
+              <button class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all btn-del-loc"
+                      data-id="{{ loc.id }}">
+                <span class="material-symbols-outlined text-[20px]">delete</span>
+              </button>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="px-6 py-12 text-center text-gray-400">No locations yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════ TAB: Contacts ═══════ -->
+  <div class="tab-panel hidden" id="panel-contacts">
+    <div class="flex justify-end mb-4">
+      <button id="btnAddContact" class="flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white rounded-lg font-bold hover:bg-brand-700 transition-all text-sm">
+        <span class="material-symbols-outlined text-[18px]">add</span> Add Contact
+      </button>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 card-shadow overflow-hidden">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-gray-50">
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500 border-b">Name</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500 border-b">Type</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500 border-b">Email</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500 border-b">Phone</th>
+            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500 border-b text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for c in contacts %}
+          <tr class="hover:bg-brand-50/30 transition-colors">
+            <td class="px-6 py-4 font-semibold text-gray-900">{{ c.name }}</td>
+            <td class="px-6 py-4">
+              {% if c.type == 'vendor' %}
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-700">Vendor</span>
+              {% elif c.type == 'customer' %}
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700">Customer</span>
+              {% else %}
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600">Internal</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 text-gray-600">{{ c.email or '—' }}</td>
+            <td class="px-6 py-4 text-gray-600">{{ c.phone or '—' }}</td>
+            <td class="px-6 py-4 text-right">
+              <button class="p-2 text-gray-400 hover:text-brand-600 hover:bg-brand-100 rounded-lg transition-all btn-edit-contact"
+                      data-id="{{ c.id }}" data-name="{{ c.name }}" data-type="{{ c.type }}" data-email="{{ c.email or '' }}" data-phone="{{ c.phone or '' }}">
+                <span class="material-symbols-outlined text-[20px]">edit</span>
+              </button>
+              <button class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all btn-del-contact"
+                      data-id="{{ c.id }}">
+                <span class="material-symbols-outlined text-[20px]">delete</span>
+              </button>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="px-6 py-12 text-center text-gray-400">No contacts yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<footer class="mt-auto py-6 border-t border-gray-200 text-center text-gray-400 text-xs">
+  © 2026 CoreInventory Management System. All rights reserved.
+</footer>
+
+
+<!-- ═══════ MODALS ═══════ -->
+
+<!-- Add Warehouse -->
+<div id="modalAddWH" class="fixed inset-0 z-50 hidden items-center justify-center">
+  <div class="modal-backdrop absolute inset-0 bg-gray-900/50 backdrop-blur-sm" id="bdAddWH"></div>
+  <div class="modal-box relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8 z-10">
+    <h2 class="text-xl font-bold text-gray-900 mb-6">Add Warehouse</h2>
+    <div class="space-y-4">
+      <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Name *</label>
+        <input id="whName" type="text" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm"/></div>
+      <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Short Code *</label>
+        <input id="whCode" type="text" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm"/></div>
+      <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Address</label>
+        <input id="whAddress" type="text" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm"/></div>
+    </div>
+    <div id="whError" class="mt-3 text-xs text-red-500 hidden"></div>
+    <div class="flex gap-3 mt-6">
+      <button class="close-modal flex-1 py-2.5 rounded-lg border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50" data-modal="modalAddWH">Cancel</button>
+      <button id="submitWH" class="flex-1 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-bold hover:bg-brand-700">Add Warehouse</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Location -->
+<div id="modalAddLoc" class="fixed inset-0 z-50 hidden items-center justify-center">
+  <div class="modal-backdrop absolute inset-0 bg-gray-900/50 backdrop-blur-sm" id="bdAddLoc"></div>
+  <div class="modal-box relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8 z-10">
+    <h2 class="text-xl font-bold text-gray-900 mb-6">Add Location</h2>
+    <div class="space-y-4">
+      <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Warehouse *</label>
+        <select id="locWH" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm">
+          {% for wh in warehouses %}<option value="{{ wh.id }}">{{ wh.name }}</option>{% endfor %}
+        </select></div>
+      <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Name *</label>
+        <input id="locName" type="text" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm"/></div>
+      <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Short Code *</label>
+        <input id="locCode" type="text" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm"/></div>
+    </div>
+    <div id="locError" class="mt-3 text-xs text-red-500 hidden"></div>
+    <div class="flex gap-3 mt-6">
+      <button class="close-modal flex-1 py-2.5 rounded-lg border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50" data-modal="modalAddLoc">Cancel</button>
+      <button id="submitLoc" class="flex-1 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-bold hover:bg-brand-700">Add Location</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Contact -->
+<div id="modalAddContact" class="fixed inset-0 z-50 hidden items-center justify-center">
+  <div class="modal-backdrop absolute inset-0 bg-gray-900/50 backdrop-blur-sm" id="bdAddContact"></div>
+  <div class="modal-box relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8 z-10">
+    <h2 class="text-xl font-bold text-gray-900 mb-6">Add Contact</h2>
+    <div class="space-y-4">
+      <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Name *</label>
+        <input id="ctName" type="text" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm"/></div>
+      <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Type</label>
+        <select id="ctType" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm">
+          <option value="vendor">Vendor</option>
+          <option value="customer">Customer</option>
+          <option value="internal">Internal</option>
+        </select></div>
+      <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Email</label>
+        <input id="ctEmail" type="email" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm"/></div>
+      <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Phone</label>
+        <input id="ctPhone" type="text" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm"/></div>
+    </div>
+    <div id="ctError" class="mt-3 text-xs text-red-500 hidden"></div>
+    <div class="flex gap-3 mt-6">
+      <button class="close-modal flex-1 py-2.5 rounded-lg border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50" data-modal="modalAddContact">Cancel</button>
+      <button id="submitContact" class="flex-1 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-bold hover:bg-brand-700">Add Contact</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Toast -->
+<div id="toast"
+     class="fixed bottom-6 right-6 z-[100] px-5 py-3 rounded-xl text-white text-sm font-semibold shadow-lg flex items-center gap-2 translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+  <span class="material-symbols-outlined text-[18px]" id="toastIcon">check_circle</span>
+  <span id="toastMsg"></span>
+</div>
+
+</div>
+
+<script>
+document.addEventListener('click', function(e){
+    const dd = document.getElementById('profileDropdown');
+    const btn = document.getElementById('profileBtn');
+    if(dd && btn && !btn.contains(e.target) && !dd.contains(e.target)) dd.classList.add('hidden');
+});
+</script>
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+</body>
+</html>

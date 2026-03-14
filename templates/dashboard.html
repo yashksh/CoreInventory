@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>CoreInventory - Dashboard</title>
+
+    <!-- Tailwind CSS v3 with Plugins -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Tailwind Configuration – exact brand colors from spec -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- External stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
+</head>
+
+<body class="bg-gray-50 text-gray-900 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- ═══════════════════════════ HEADER ═══════════════════════════ -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center">
+                    <span class="text-2xl font-bold text-brand-600">CoreInventory</span>
+                </div>
+
+                <!-- Desktop nav links -->
+                <div class="hidden md:flex space-x-8 h-full items-center">
+                    <a aria-current="page"
+                        class="border-b-2 border-brand-500 text-gray-900 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+                        href="{{ url_for('dashboard.index') }}">Dashboard</a>
+
+                    <a class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+                        href="{{ url_for('operations.operations_page') }}">Operations</a>
+
+                    <a class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+                        href="{{ url_for('stock.stock_page') }}">Stock</a>
+
+                    <a class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+                        href="{{ url_for('operations.move_history_page') }}">Move History</a>
+
+                    <a class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+                        href="{{ url_for('settings.settings_page') }}">Settings</a>
+                </div>
+
+                <!-- Profile Avatar Dropdown -->
+                <div class="relative">
+                    <button id="profileBtn" onclick="document.getElementById('profileDropdown').classList.toggle('hidden')"
+                        class="flex items-center gap-2 focus:outline-none">
+                        <div class="h-9 w-9 rounded-full bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md hover:shadow-lg transition-shadow">
+                            {{ session['login_id'][0] | upper }}
+                        </div>
+                    </button>
+                    <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
+                        <div class="px-4 py-3 border-b border-gray-100">
+                            <p class="text-sm font-bold text-gray-900">{{ session['login_id'] }}</p>
+                            <p class="text-xs text-gray-400">{{ session.get('email', '') }}</p>
+                        </div>
+                        <a href="{{ url_for('auth.logout') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
+                            <span class="material-symbols-outlined text-[18px]">logout</span> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <!-- ═══════════════════════════ /HEADER ══════════════════════════ -->
+
+
+    <!-- ═══════════════════════════ MAIN ════════════════════════════ -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">
+
+        <!-- Page title + refresh -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
+                <p class="text-sm text-gray-400 mt-0.5">Live inventory operations overview</p>
+            </div>
+            <button id="refreshBtn" onclick="refreshStats()"
+                class="inline-flex items-center gap-2 text-sm text-brand-600 hover:text-brand-700 font-medium transition-colors">
+                <svg id="refreshIcon" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Refresh
+            </button>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+
+            <!-- ─── OPERATION CARDS ─────────────────────────────────── -->
+            <section class="flex-grow grid grid-cols-1 md:grid-cols-2 gap-6" data-purpose="inventory-overview">
+
+                <!-- Receipt Card -->
+                <div class="bg-white rounded-xl card-shadow overflow-hidden border border-gray-100 flex flex-col card-animate"
+                    data-purpose="receipt-card">
+                    <div class="bg-brand-600 px-6 py-4">
+                        <h2 class="text-xl font-semibold text-white">Receipt</h2>
+                    </div>
+                    <div class="p-8 flex-grow flex flex-col justify-center items-center">
+
+                        <button
+                            class="w-full py-4 bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-lg shadow-md transition duration-200 mb-8 text-lg">
+                            <span id="pending_receipts">{{ pending_receipts }}</span> to receive
+                        </button>
+
+                        <div class="grid grid-cols-3 w-full gap-2 text-center">
+                            <div class="p-3 bg-red-50 rounded-lg stat-box">
+                                <span id="late_receipts" class="block text-xl font-bold text-red-600">{{
+                                    late_receipts }}</span>
+                                <span
+                                    class="text-[10px] uppercase tracking-wider font-semibold text-red-400">Late</span>
+                            </div>
+                            <div class="p-3 bg-amber-50 rounded-lg stat-box">
+                                <span id="waiting_receipts" class="block text-xl font-bold text-amber-600">{{
+                                    waiting_receipts }}</span>
+                                <span
+                                    class="text-[10px] uppercase tracking-wider font-semibold text-amber-400">Waiting</span>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded-lg stat-box">
+                                <span id="total_receipt_operations" class="block text-xl font-bold text-gray-700">{{
+                                    total_receipt_operations }}</span>
+                                <span
+                                    class="text-[10px] uppercase tracking-wider font-semibold text-gray-400">Operations</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /Receipt Card -->
+
+                <!-- Delivery Card -->
+                <div class="bg-white rounded-xl card-shadow overflow-hidden border border-gray-100 flex flex-col card-animate"
+                    style="animation-delay:0.1s" data-purpose="delivery-card">
+                    <div class="bg-brand-700 px-6 py-4">
+                        <h2 class="text-xl font-semibold text-white">Delivery</h2>
+                    </div>
+                    <div class="p-8 flex-grow flex flex-col justify-center items-center">
+
+                        <button
+                            class="w-full py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg shadow-md transition duration-200 mb-8 text-lg">
+                            <span id="pending_deliveries">{{ pending_deliveries }}</span> to Deliver
+                        </button>
+
+                        <div class="grid grid-cols-3 w-full gap-2 text-center">
+                            <div class="p-3 bg-red-50 rounded-lg stat-box">
+                                <span id="late_deliveries" class="block text-xl font-bold text-red-600">{{
+                                    late_deliveries }}</span>
+                                <span
+                                    class="text-[10px] uppercase tracking-wider font-semibold text-red-400">Late</span>
+                            </div>
+                            <div class="p-3 bg-amber-50 rounded-lg stat-box">
+                                <span id="waiting_deliveries" class="block text-xl font-bold text-amber-600">{{
+                                    waiting_deliveries }}</span>
+                                <span
+                                    class="text-[10px] uppercase tracking-wider font-semibold text-amber-400">Waiting</span>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded-lg stat-box">
+                                <span id="total_delivery_operations" class="block text-xl font-bold text-gray-700">{{
+                                    total_delivery_operations }}</span>
+                                <span
+                                    class="text-[10px] uppercase tracking-wider font-semibold text-gray-400">Operations</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /Delivery Card -->
+
+            </section>
+            <!-- ─── /OPERATION CARDS ────────────────────────────────── -->
+
+
+            <!-- ─── INFO SIDEBAR ──────────────────────────────────────
+            <aside class="w-full lg:w-72 shrink-0">
+                <div class="bg-white p-6 rounded-xl border border-gray-200 card-shadow h-fit"
+                    data-purpose="status-definitions">
+
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round"
+                                stroke-linejoin="round" stroke-width="2" />
+                        </svg>
+                        Status Legend
+                    </h3>
+
+                    <ul class="space-y-4">
+                        <li class="flex flex-col">
+                            <span class="text-sm font-semibold text-red-600">Late</span>
+                            <span class="text-xs text-gray-500">Scheduled date &lt; Today's date</span>
+                        </li>
+                        <li class="flex flex-col">
+                            <span class="text-sm font-semibold text-gray-700">Operations</span>
+                            <span class="text-xs text-gray-500">Scheduled date &gt; Today's date</span>
+                        </li>
+                        <li class="flex flex-col">
+                            <span class="text-sm font-semibold text-amber-600">Waiting</span>
+                            <span class="text-xs text-gray-500">Waiting for inventory availability</span>
+                        </li>
+                    </ul> -->
+
+                    <!-- Divider -->
+                    <!-- <hr class="my-5 border-gray-100" /> -->
+
+                    <!-- Last refreshed timestamp -->
+                    <!-- <p class="text-xs text-gray-400">
+                        Last updated:<br />
+                        <span id="lastUpdated" class="font-medium text-gray-500">—</span>
+                    </p> -->
+
+                    <!-- Live indicator dot -->
+                    <!-- <div class="flex items-center gap-2 mt-3">
+                        <span id="liveDot" class="inline-block h-2 w-2 rounded-full bg-green-400 live-dot"></span>
+                        <span class="text-xs text-gray-400">Auto-refreshes every 60 s</span>
+                    </div>
+
+                </div>
+            </aside> -->
+            <!-- ─── /INFO SIDEBAR ───────────────────────────────────── -->
+
+        </div>
+    </main>
+    <!-- ═══════════════════════════ /MAIN ═══════════════════════════ -->
+
+
+    <!-- ═══════════════════════════ FOOTER ══════════════════════════ -->
+    <footer class="py-6 border-t border-gray-200 text-center text-gray-400 text-xs">
+        © 2026 CoreInventory Management System. All rights reserved.
+    </footer>
+    <!-- ═══════════════════════════ /FOOTER ═════════════════════════ -->
+
+    <!-- JS -->
+    <script>
+    document.addEventListener('click', function(e){
+        const dd = document.getElementById('profileDropdown');
+        const btn = document.getElementById('profileBtn');
+        if(dd && btn && !btn.contains(e.target) && !dd.contains(e.target)){
+            dd.classList.add('hidden');
+        }
+    });
+    </script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+
+</html>

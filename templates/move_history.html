@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Move History - CoreInventory</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    "primary": "#3b82f6",
+                    "brand": {
+                        50: '#f0f9ff',
+                        100: '#e0f2fe',
+                        500: '#0ea5e9',
+                        600: '#0284c7',
+                        700: '#0369a1',
+                    },
+                },
+                fontFamily: {
+                    "display": ["Public Sans", "sans-serif"]
+                },
+            },
+        },
+    }
+</script>
+<style>
+    body { font-family: 'Public Sans', sans-serif; }
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        vertical-align: middle;
+    }
+</style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen">
+<div class="flex flex-col min-h-screen">
+
+  <!-- Navigation Bar -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16 items-center">
+        <div class="flex-shrink-0 flex items-center">
+          <span class="text-2xl font-bold text-brand-600">CoreInventory</span>
+        </div>
+        <div class="hidden md:flex space-x-8 h-full items-center">
+          <a class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+             href="{{ url_for('dashboard.index') }}">Dashboard</a>
+          <a class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+             href="{{ url_for('operations.operations_page') }}">Operations</a>
+          <a class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+             href="{{ url_for('stock.stock_page') }}">Stock</a>
+          <a aria-current="page"
+             class="border-b-2 border-brand-500 text-gray-900 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+             href="{{ url_for('operations.move_history_page') }}">Move History</a>
+          <a class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+             href="{{ url_for('settings.settings_page') }}">Settings</a>
+        </div>
+        <div class="relative">
+          <button id="profileBtn" onclick="document.getElementById('profileDropdown').classList.toggle('hidden')" class="flex items-center gap-2 focus:outline-none">
+            <div class="h-9 w-9 rounded-full bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md hover:shadow-lg transition-shadow">{{ session['login_id'][0] | upper }}</div>
+          </button>
+          <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
+            <div class="px-4 py-3 border-b border-gray-100">
+              <p class="text-sm font-bold text-gray-900">{{ session['login_id'] }}</p>
+              <p class="text-xs text-gray-400">{{ session.get('email', '') }}</p>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"><span class="material-symbols-outlined text-[18px]">logout</span> Logout</a>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Move History</h1>
+        <p class="text-gray-500 mt-1">Track all stock movements across your operations.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="relative flex-1 md:min-w-[300px]">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+          <input
+            id="searchInput"
+            class="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none transition-all text-sm"
+            placeholder="Search moves..."
+            type="text"
+            value="{{ search }}"
+            oninput="filterTable(this.value)"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- View Toggle -->
+    <div class="flex items-center gap-2 mb-4">
+      <button id="btnListView" onclick="switchView('list')" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-brand-600 text-white shadow-sm transition-all">
+        <span class="material-symbols-outlined text-[18px]">view_list</span> List
+      </button>
+      <button id="btnKanbanView" onclick="switchView('kanban')" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 transition-all">
+        <span class="material-symbols-outlined text-[18px]">view_kanban</span> Kanban
+      </button>
+    </div>
+
+    <!-- ═══ LIST VIEW ═══ -->
+    <div id="listView" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse" id="movesTable">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-200">
+              <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Reference</th>
+              <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Date</th>
+              <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Contact</th>
+              <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">From</th>
+              <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">To</th>
+              <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Quantity</th>
+              <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100" id="tableBody">
+            {% for move in moves %}
+            <tr class="hover:bg-brand-50/30 transition-colors move-row"
+                data-reference="{{ move.reference | lower }}"
+                data-contact="{{ (move.contact_name or '') | lower }}"
+                data-from="{{ (move.from_location or '') | lower }}"
+                data-to="{{ (move.to_location or '') | lower }}">
+              <td class="px-6 py-5 font-semibold text-brand-600">{{ move.reference }}</td>
+              <td class="px-6 py-5 text-sm text-gray-600">{% if move.schedule_date %}{{ move.schedule_date.strftime('%m/%d/%Y') }}{% else %}—{% endif %}</td>
+              <td class="px-6 py-5 text-sm text-gray-600">{{ move.contact_name or '—' }}</td>
+              <td class="px-6 py-5 text-sm">{% if move.from_location %}<span class="text-gray-600">{{ move.from_location }}</span>{% else %}<span class="px-2 py-1 rounded bg-gray-100 text-gray-600 text-xs font-medium">Vendor</span>{% endif %}</td>
+              <td class="px-6 py-5 text-sm">{% if move.to_location %}<span class="text-gray-600">{{ move.to_location }}</span>{% else %}<span class="px-2 py-1 rounded bg-gray-100 text-gray-600 text-xs font-medium">Customer</span>{% endif %}</td>
+              <td class="px-6 py-5 text-sm font-medium text-gray-900">{{ move.total_quantity }}</td>
+              <td class="px-6 py-5">
+                {% set s = move.status %}
+                {% if s == 'ready' %}<span class="inline-flex items-center gap-1 text-green-600 font-bold text-sm"><span class="material-symbols-outlined text-sm">check_circle</span> Ready</span>
+                {% elif s == 'done' %}<span class="inline-flex items-center gap-1 text-blue-600 font-bold text-sm"><span class="material-symbols-outlined text-sm">task_alt</span> Done</span>
+                {% elif s == 'waiting' %}<span class="inline-flex items-center gap-1 text-amber-600 font-bold text-sm"><span class="material-symbols-outlined text-sm">schedule</span> Waiting</span>
+                {% else %}<span class="inline-flex items-center gap-1 text-gray-500 font-bold text-sm"><span class="material-symbols-outlined text-sm">edit_note</span> Draft</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="px-6 py-12 text-center text-gray-400 text-sm">No moves found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+        <p class="text-sm text-gray-500">Showing <span class="font-medium" id="showingFrom">1</span> to <span class="font-medium" id="showingTo">{{ moves | length }}</span> of <span class="font-medium" id="totalCount">{{ moves | length }}</span> results</p>
+        <div class="flex gap-2">
+          <button id="prevBtn" onclick="changePage(-1)" class="p-2 rounded-lg border border-gray-200 hover:bg-white disabled:opacity-50" disabled><span class="material-symbols-outlined">chevron_left</span></button>
+          <button id="nextBtn" onclick="changePage(1)" class="p-2 rounded-lg border border-gray-200 hover:bg-white"><span class="material-symbols-outlined">chevron_right</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ KANBAN VIEW ═══ -->
+    <div id="kanbanView" class="hidden">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+        {% set optypes = [('receipt','Receipts','bg-emerald-50','text-emerald-700','move_to_inbox'),('delivery','Deliveries','bg-blue-50','text-blue-700','local_shipping'),('internal','Internal Transfers','bg-purple-50','text-purple-700','swap_horiz')] %}
+        {% for okey, olabel, obg, otxt, oicon in optypes %}
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2 mb-3 px-1">
+            <span class="material-symbols-outlined text-[20px] {{ otxt }}">{{ oicon }}</span>
+            <h3 class="text-sm font-bold uppercase tracking-wider {{ otxt }}">{{ olabel }}</h3>
+            <span class="ml-auto px-2 py-0.5 rounded-full text-xs font-bold {{ obg }} {{ otxt }}">
+              {{ moves | selectattr('operation_type','equalto', okey) | list | length }}
+            </span>
+          </div>
+          <div class="space-y-3 flex-1 min-h-[200px] p-2 rounded-xl {{ obg }} bg-opacity-30 border border-dashed border-gray-200">
+            {% for move in moves if move.operation_type == okey %}
+            <div class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md hover:border-brand-300 transition-all">
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-bold text-sm text-brand-600">{{ move.reference }}</span>
+                {% if move.status == 'done' %}
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-50 text-green-700">Done</span>
+                {% elif move.status == 'ready' %}
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700">Ready</span>
+                {% elif move.status == 'waiting' %}
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700">Waiting</span>
+                {% else %}
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-600">Draft</span>
+                {% endif %}
+              </div>
+              <div class="space-y-1 text-xs text-gray-500">
+                {% if move.contact_name %}
+                <div class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> {{ move.contact_name }}</div>
+                {% endif %}
+                <div class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">calendar_today</span> {% if move.schedule_date %}{{ move.schedule_date.strftime('%m/%d/%Y') }}{% else %}—{% endif %}</div>
+                <div class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">inventory_2</span> {{ move.total_quantity }} units</div>
+              </div>
+            </div>
+            {% else %}
+            <div class="text-center py-8 text-gray-300 text-xs">No moves</div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+      <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
+            <span class="material-symbols-outlined">move_down</span>
+          </div>
+          <div>
+            <p class="text-xs font-bold uppercase text-gray-500 tracking-wider">Total Incoming</p>
+            <p class="text-2xl font-black">{{ total_incoming }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-orange-50 text-orange-600 rounded-lg">
+            <span class="material-symbols-outlined">move_up</span>
+          </div>
+          <div>
+            <p class="text-xs font-bold uppercase text-gray-500 tracking-wider">Total Outgoing</p>
+            <p class="text-2xl font-black">{{ total_outgoing }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-green-50 text-green-600 rounded-lg">
+            <span class="material-symbols-outlined">inventory</span>
+          </div>
+          <div>
+            <p class="text-xs font-bold uppercase text-gray-500 tracking-wider">On Hand</p>
+            <p class="text-2xl font-black">{{ "{:,}".format(on_hand) }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-auto py-6 border-t border-gray-200 text-center text-gray-400 text-xs">
+    © 2026 CoreInventory Management System. All rights reserved.
+  </footer>
+</div>
+
+<script>
+  // ── Pagination ──────────────────────────────────────────────
+  const PAGE_SIZE = 20;
+  let currentPage = 1;
+  let visibleRows = [];
+
+  function getVisibleRows() {
+    return Array.from(document.querySelectorAll('.move-row')).filter(r => r.style.display !== 'none');
+  }
+
+  function renderPage() {
+    visibleRows = getVisibleRows();
+    const total = visibleRows.length;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    currentPage = Math.min(currentPage, totalPages);
+
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+
+    visibleRows.forEach((row, idx) => {
+      row.style.display = (idx >= start && idx < end) ? '' : 'none';
+    });
+
+    document.getElementById('showingFrom').textContent = total === 0 ? 0 : start + 1;
+    document.getElementById('showingTo').textContent = Math.min(end, total);
+    document.getElementById('totalCount').textContent = total;
+    document.getElementById('prevBtn').disabled = currentPage <= 1;
+    document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+  }
+
+  function changePage(dir) {
+    currentPage += dir;
+    renderPage();
+  }
+
+  // ── Client-side Search ───────────────────────────────────────
+  function filterTable(query) {
+    const q = query.toLowerCase().trim();
+    document.querySelectorAll('.move-row').forEach(row => {
+      const ref     = row.dataset.reference || '';
+      const contact = row.dataset.contact   || '';
+      const from    = row.dataset.from      || '';
+      const to      = row.dataset.to        || '';
+      const match = !q || ref.includes(q) || contact.includes(q) || from.includes(q) || to.includes(q);
+      row.style.display = match ? '' : 'none';
+    });
+    currentPage = 1;
+    renderPage();
+  }
+
+  // Init
+  document.addEventListener('DOMContentLoaded', () => {
+    const initial = document.getElementById('searchInput').value;
+    if (initial) filterTable(initial);
+    else renderPage();
+  });
+
+  function switchView(view) {
+    const listView = document.getElementById('listView');
+    const kanbanView = document.getElementById('kanbanView');
+    const btnList = document.getElementById('btnListView');
+    const btnKanban = document.getElementById('btnKanbanView');
+    if (view === 'kanban') {
+      listView.classList.add('hidden');
+      kanbanView.classList.remove('hidden');
+      btnKanban.className = btnKanban.className.replace(/bg-white text-gray-600 border border-gray-200 hover:bg-gray-50/, 'bg-brand-600 text-white shadow-sm');
+      btnList.className = btnList.className.replace(/bg-brand-600 text-white shadow-sm/, 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50');
+    } else {
+      kanbanView.classList.add('hidden');
+      listView.classList.remove('hidden');
+      btnList.className = btnList.className.replace(/bg-white text-gray-600 border border-gray-200 hover:bg-gray-50/, 'bg-brand-600 text-white shadow-sm');
+      btnKanban.className = btnKanban.className.replace(/bg-brand-600 text-white shadow-sm/, 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50');
+    }
+  }
+</script>
+</body>
+</html>

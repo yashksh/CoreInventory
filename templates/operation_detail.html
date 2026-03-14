@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>{{ move.reference }} — CoreInventory</title>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1' }
+          },
+          fontFamily: { sans: ['Public Sans', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/operation_detail.css') }}"/>
+</head>
+
+<body class="bg-gray-50 text-gray-900 font-sans antialiased min-h-screen">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+
+<!-- HEADER -->
+<header class="bg-white border-b border-gray-200 sticky top-0 z-50 no-print">
+  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16 items-center">
+      <div class="flex-shrink-0 flex items-center">
+        <span class="text-2xl font-bold text-brand-600">CoreInventory</span>
+      </div>
+      <div class="hidden md:flex space-x-8 h-full items-center">
+        <a class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+           href="{{ url_for('dashboard.index') }}">Dashboard</a>
+        <a class="border-b-2 border-brand-500 text-gray-900 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+           href="{{ url_for('operations.operations_page') }}">Operations</a>
+        <a class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+           href="{{ url_for('stock.stock_page') }}">Stock</a>
+        <a class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+           href="{{ url_for('operations.move_history_page') }}">Move History</a>
+        <a class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 inline-flex items-center px-1 pt-1 text-sm font-medium h-full"
+           href="{{ url_for('settings.settings_page') }}">Settings</a>
+      </div>
+      <div class="relative">
+        <button id="profileBtn" onclick="document.getElementById('profileDropdown').classList.toggle('hidden')" class="flex items-center gap-2 focus:outline-none">
+          <div class="h-9 w-9 rounded-full bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md hover:shadow-lg transition-shadow">{{ session['login_id'][0] | upper }}</div>
+        </button>
+        <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
+          <div class="px-4 py-3 border-b border-gray-100">
+            <p class="text-sm font-bold text-gray-900">{{ session['login_id'] }}</p>
+            <p class="text-xs text-gray-400">{{ session.get('email', '') }}</p>
+          </div>
+          <a href="{{ url_for('auth.logout') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"><span class="material-symbols-outlined text-[18px]">logout</span> Logout</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<!-- MAIN -->
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1" id="printArea">
+
+  <!-- ── Top Bar: Back + New + Title + Actions + Status ── -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 no-print">
+    <div class="flex items-center gap-4">
+      <a href="{{ url_for('operations.operations_page') }}"
+         class="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-all"
+         title="Back to Operations">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </a>
+
+      <!-- New button dropdown -->
+      <div class="relative" id="newBtnWrap">
+        <button id="btnNewDrop"
+                class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all shadow-sm">
+          <span class="material-symbols-outlined text-[18px]">add</span> New
+        </button>
+        <div id="newDropMenu"
+             class="absolute left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 w-48 hidden z-20">
+          <a href="{{ url_for('operations.new_operation_redirect', type='receipt') }}"
+             class="block px-4 py-2 text-sm text-gray-700 hover:bg-brand-50 hover:text-brand-700">
+            <span class="material-symbols-outlined text-[16px] align-middle mr-1">move_to_inbox</span> Receipt
+          </a>
+          <a href="{{ url_for('operations.new_operation_redirect', type='delivery') }}"
+             class="block px-4 py-2 text-sm text-gray-700 hover:bg-brand-50 hover:text-brand-700">
+            <span class="material-symbols-outlined text-[16px] align-middle mr-1">local_shipping</span> Delivery
+          </a>
+          <a href="{{ url_for('operations.new_operation_redirect', type='internal') }}"
+             class="block px-4 py-2 text-sm text-gray-700 hover:bg-brand-50 hover:text-brand-700">
+            <span class="material-symbols-outlined text-[16px] align-middle mr-1">swap_horiz</span> Internal Transfer
+          </a>
+        </div>
+      </div>
+
+      <!-- Operation Type Title -->
+      <h1 class="text-2xl font-bold text-gray-900 tracking-tight">
+        {% if move.operation_type == 'receipt' %}Receipt
+        {% elif move.operation_type == 'delivery' %}Delivery
+        {% else %}Internal Transfer{% endif %}
+      </h1>
+    </div>
+
+    <div class="flex items-center gap-3 flex-wrap">
+      <!-- Status-dependent action buttons -->
+      {% if move.status == 'draft' %}
+        <button id="btnMarkReady"
+                class="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700 transition-all shadow-sm">
+          <span class="material-symbols-outlined text-[18px]">check</span> Mark as Ready
+        </button>
+      {% endif %}
+
+      {% if move.status == 'ready' %}
+        <button id="btnValidate"
+                class="flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg font-bold text-sm hover:bg-green-700 transition-all shadow-sm">
+          <span class="material-symbols-outlined text-[18px]">verified</span> Validate
+        </button>
+      {% endif %}
+
+      {% if move.status == 'done' %}
+        <button onclick="window.print()"
+                class="flex items-center gap-2 px-5 py-2.5 bg-gray-700 text-white rounded-lg font-bold text-sm hover:bg-gray-800 transition-all shadow-sm">
+          <span class="material-symbols-outlined text-[18px]">print</span> Print
+        </button>
+      {% endif %}
+
+      {% if move.status != 'done' %}
+        <button id="btnCancel"
+                class="flex items-center gap-2 px-4 py-2.5 bg-white border border-red-200 text-red-600 rounded-lg font-semibold text-sm hover:bg-red-50 transition-all">
+          <span class="material-symbols-outlined text-[18px]">close</span> Cancel
+        </button>
+      {% endif %}
+
+      <!-- Status flow indicator -->
+      <div class="flex items-center gap-1 ml-2 text-xs font-bold uppercase tracking-wider">
+        <span class="px-2 py-1 rounded {{ 'bg-brand-600 text-white' if move.status == 'draft' else 'bg-gray-100 text-gray-400' }}">Draft</span>
+        <span class="text-gray-300">›</span>
+        <span class="px-2 py-1 rounded {{ 'bg-blue-600 text-white' if move.status == 'ready' else 'bg-gray-100 text-gray-400' }}">Ready</span>
+        <span class="text-gray-300">›</span>
+        <span class="px-2 py-1 rounded {{ 'bg-green-600 text-white' if move.status == 'done' else 'bg-gray-100 text-gray-400' }}">Done</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Detail Card ── -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+
+    <!-- Reference header -->
+    <div class="px-8 py-5 border-b border-gray-100 bg-gray-50/50">
+      <h2 class="text-xl font-bold text-gray-800">{{ move.reference }}</h2>
+    </div>
+
+    <!-- Form fields -->
+    <div class="px-8 py-6 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-5 border-b border-gray-100">
+
+      <!-- Receive From / Deliver To / Source -->
+      {% if move.operation_type == 'receipt' %}
+      <div>
+        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Receive From</label>
+        <select id="fieldContact" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:ring-brand-500 focus:border-brand-500 {{ 'pointer-events-none opacity-60' if move.status == 'done' }}"
+                {{ 'disabled' if move.status == 'done' }}>
+          <option value="">— Select Vendor —</option>
+          {% for c in contacts %}
+            <option value="{{ c.id }}" {{ 'selected' if move.contact_id == c.id }}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% elif move.operation_type == 'delivery' %}
+      <div>
+        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Deliver To</label>
+        <select id="fieldContact" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:ring-brand-500 focus:border-brand-500 {{ 'pointer-events-none opacity-60' if move.status == 'done' }}"
+                {{ 'disabled' if move.status == 'done' }}>
+          <option value="">— Select Customer —</option>
+          {% for c in contacts %}
+            <option value="{{ c.id }}" {{ 'selected' if move.contact_id == c.id }}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <!-- Schedule Date -->
+      <div>
+        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Schedule Date</label>
+        <input id="fieldDate" type="date"
+               value="{{ move.schedule_date.strftime('%Y-%m-%d') if move.schedule_date else '' }}"
+               class="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:ring-brand-500 focus:border-brand-500 {{ 'pointer-events-none opacity-60' if move.status == 'done' }}"
+               {{ 'disabled' if move.status == 'done' }}/>
+      </div>
+
+      <!-- From Location (for delivery / internal) -->
+      {% if move.operation_type in ('delivery', 'internal') %}
+      <div>
+        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">From Location</label>
+        <select id="fieldFromLoc" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:ring-brand-500 focus:border-brand-500 {{ 'pointer-events-none opacity-60' if move.status == 'done' }}"
+                {{ 'disabled' if move.status == 'done' }}>
+          <option value="">— Select —</option>
+          {% for loc in locations %}
+            <option value="{{ loc.id }}" {{ 'selected' if move.from_location_id == loc.id }}>{{ loc.warehouse.name }} / {{ loc.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <!-- To Location (for receipt / internal) -->
+      {% if move.operation_type in ('receipt', 'internal') %}
+      <div>
+        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">To Location</label>
+        <select id="fieldToLoc" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:ring-brand-500 focus:border-brand-500 {{ 'pointer-events-none opacity-60' if move.status == 'done' }}"
+                {{ 'disabled' if move.status == 'done' }}>
+          <option value="">— Select —</option>
+          {% for loc in locations %}
+            <option value="{{ loc.id }}" {{ 'selected' if move.to_location_id == loc.id }}>{{ loc.warehouse.name }} / {{ loc.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <!-- Responsible (auto-filled, read-only) -->
+      <div>
+        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Responsible</label>
+        <input type="text" value="{{ session['login_id'] }}" disabled
+               class="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-100 text-sm text-gray-600 cursor-not-allowed"/>
+      </div>
+    </div>
+
+    <!-- ── Products Section ── -->
+    <div class="px-8 py-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest">Products</h3>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b-2 border-gray-200">
+              <th class="py-3 pr-4 text-xs font-bold uppercase tracking-wider text-gray-500 w-2/3">Product</th>
+              <th class="py-3 pr-4 text-xs font-bold uppercase tracking-wider text-gray-500 text-right">Quantity</th>
+              {% if move.status != 'done' %}
+              <th class="py-3 text-xs font-bold uppercase tracking-wider text-gray-500 text-right w-16"></th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody id="linesBody" class="divide-y divide-gray-100">
+            {% for line in move.lines %}
+            <tr class="product-line-row" data-line-id="{{ line.id }}">
+              <td class="py-3 pr-4">
+                <span class="font-semibold text-gray-900">[{{ line.product.product_code }}] {{ line.product.name }}</span>
+              </td>
+              <td class="py-3 pr-4 text-right font-medium text-gray-700">{{ line.quantity }}</td>
+              {% if move.status != 'done' %}
+              <td class="py-3 text-right">
+                <button class="btn-remove-line p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                        data-line-id="{{ line.id }}" title="Remove">
+                  <span class="material-symbols-outlined text-[18px]">close</span>
+                </button>
+              </td>
+              {% endif %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if move.status != 'done' %}
+      <!-- Add new product line -->
+      <div class="mt-4 flex items-center gap-3 pt-3 border-t border-gray-100" id="addLineRow">
+        <select id="newLineProduct" class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:ring-brand-500 focus:border-brand-500">
+          <option value="">— Select Product —</option>
+          {% for p in products %}
+            <option value="{{ p.id }}">[{{ p.product_code }}] {{ p.name }}</option>
+          {% endfor %}
+        </select>
+        <input id="newLineQty" type="number" min="1" placeholder="Qty"
+               class="w-28 px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:ring-brand-500 focus:border-brand-500"/>
+        <button id="btnAddLine"
+                class="flex items-center gap-1 px-4 py-2.5 bg-brand-600 text-white rounded-lg font-bold text-sm hover:bg-brand-700 transition-all">
+          <span class="material-symbols-outlined text-[16px]">add</span> Add
+        </button>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="mt-auto py-6 border-t border-gray-200 text-center text-gray-400 text-xs no-print">
+  © 2026 CoreInventory Management System. All rights reserved.
+</footer>
+
+<!-- Toast -->
+<div id="toast"
+     class="fixed bottom-6 right-6 z-[100] px-5 py-3 rounded-xl text-white text-sm font-semibold shadow-lg flex items-center gap-2 translate-y-20 opacity-0 transition-all duration-300 pointer-events-none no-print">
+  <span class="material-symbols-outlined text-[18px]" id="toastIcon">check_circle</span>
+  <span id="toastMsg"></span>
+</div>
+
+</div>
+
+<script>
+document.addEventListener('click', function(e){
+    const dd = document.getElementById('profileDropdown');
+    const btn = document.getElementById('profileBtn');
+    if(dd && btn && !btn.contains(e.target) && !dd.contains(e.target)) dd.classList.add('hidden');
+});
+</script>
+<!-- Pass move ID to JS -->
+<script>const MOVE_ID = {{ move.id }};</script>
+<script src="{{ url_for('static', filename='js/operation_detail.js') }}"></script>
+</body>
+</html>

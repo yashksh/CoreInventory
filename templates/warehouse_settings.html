@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Warehouse Settings - CoreInventory</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <style>
+    .transition-all { transition: all 0.2s ease-in-out; }
+
+    /* Toggle Switch */
+    .toggle-checkbox:checked {
+      right: 0;
+      border-color: #3b82f6;
+    }
+    .toggle-checkbox:checked + .toggle-label {
+      background-color: #3b82f6;
+    }
+    .toggle-checkbox {
+      right: 16px;
+      transition: all 0.3s ease-in-out;
+    }
+
+    /* Custom toggle */
+    .toggle-switch {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+      width: 52px;
+      height: 28px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+    .toggle-track {
+      width: 52px;
+      height: 28px;
+      background-color: #d1d5db;
+      border-radius: 9999px;
+      transition: background-color 0.3s ease;
+      position: relative;
+    }
+    .toggle-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 22px;
+      height: 22px;
+      background-color: white;
+      border-radius: 9999px;
+      transition: transform 0.3s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .toggle-switch input:checked ~ .toggle-track {
+      background-color: #3b82f6;
+    }
+    .toggle-switch input:checked ~ .toggle-track .toggle-thumb {
+      transform: translateX(24px);
+    }
+  </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-900 min-h-screen flex flex-col">
+
+  <!-- ============ NAVIGATION BAR ============ -->
+  <header class="bg-white border-b border-gray-200">
+    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center">
+          <!-- Logo -->
+          <div class="flex-shrink-0 flex items-center">
+            <span class="text-2xl font-bold text-blue-600 tracking-tight">CoreInventory</span>
+          </div>
+          <!-- Nav Links -->
+          <div class="hidden sm:ml-10 sm:flex sm:space-x-8 h-full">
+            <a href="#" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-all">
+              Dashboard
+            </a>
+            <a href="#" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-all">
+              Operations
+            </a>
+            <a href="#" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-all">
+              Products
+            </a>
+            <a href="#" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-all">
+              Move History
+            </a>
+            <!-- ACTIVE: Settings -->
+            <a href="{{ url_for('warehouse_settings') }}"
+               class="inline-flex items-center px-1 pt-1 border-b-2 border-blue-500 text-sm font-medium text-blue-600">
+              Settings
+            </a>
+          </div>
+        </div>
+        <!-- Notification Bell -->
+        <div class="flex items-center">
+          <button class="bg-gray-100 p-2 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none" type="button">
+            <span class="sr-only">View notifications</span>
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ============ FLASH MESSAGES ============ -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 w-full">
+        {% for category, message in messages %}
+          <div class="rounded-md px-4 py-3 text-sm font-medium
+            {% if category == 'success' %}bg-green-50 text-green-800 border border-green-200
+            {% else %}bg-red-50 text-red-800 border border-red-200{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- ============ MAIN CONTENT ============ -->
+  <main class="py-10 flex-1">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      <!-- Page Title -->
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Warehouse Settings</h1>
+        <p class="mt-2 text-sm text-gray-600">Configure your primary warehouse details and physical location.</p>
+      </div>
+
+      <!-- ========== SETTINGS CARD ========== -->
+      <div class="bg-white shadow-sm border border-gray-200 rounded-xl overflow-hidden">
+        <form action="{{ url_for('warehouse_update') }}" method="POST">
+          <input type="hidden" name="warehouse_id" value="{{ warehouse.id }}">
+
+          <div class="p-8 space-y-6">
+
+            <!-- Row: Warehouse Name + Short Code -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <!-- Warehouse Name -->
+              <div>
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+                  Warehouse Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value="{{ warehouse.name }}"
+                  placeholder="Main Central Warehouse"
+                  class="block w-full rounded-md border border-gray-300 shadow-sm
+                         focus:border-blue-500 focus:ring-1 focus:ring-blue-500
+                         sm:text-sm px-3 py-2.5 text-gray-900 placeholder-gray-400"
+                  required
+                />
+              </div>
+              <!-- Short Code -->
+              <div>
+                <label for="short_code" class="block text-sm font-medium text-gray-700 mb-1">
+                  Short Code
+                </label>
+                <input
+                  type="text"
+                  id="short_code"
+                  name="short_code"
+                  value="{{ warehouse.short_code }}"
+                  placeholder="WH01"
+                  class="block w-full rounded-md border border-gray-300 shadow-sm
+                         focus:border-blue-500 focus:ring-1 focus:ring-blue-500
+                         sm:text-sm px-3 py-2.5 text-gray-900 placeholder-gray-400"
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- Physical Address -->
+            <div>
+              <label for="address" class="block text-sm font-medium text-gray-700 mb-1">
+                Physical Address
+              </label>
+              <textarea
+                id="address"
+                name="address"
+                rows="4"
+                placeholder="123 Logistics Way, Distribution Park, TX 75001"
+                class="block w-full rounded-md border border-gray-300 shadow-sm
+                       focus:border-blue-500 focus:ring-1 focus:ring-blue-500
+                       sm:text-sm px-3 py-2.5 text-gray-900 placeholder-gray-400 resize-y"
+              >{{ warehouse.address or '' }}</textarea>
+              <p class="mt-1.5 text-sm text-gray-500">The full address for shipping and receiving documents.</p>
+            </div>
+
+            <!-- Operational Status Toggle -->
+            <div class="flex items-center justify-between pt-2">
+              <div>
+                <p class="text-sm font-medium text-gray-900">Operational Status</p>
+                <p class="text-sm text-gray-500 mt-0.5">Determines if this warehouse is currently accepting stock movements.</p>
+              </div>
+              <!-- Toggle Switch -->
+              <label class="toggle-switch" id="toggleLabel">
+                <input type="checkbox" id="operationalToggle" name="is_active" value="1" checked>
+                <div class="toggle-track">
+                  <div class="toggle-thumb"></div>
+                </div>
+              </label>
+            </div>
+
+          </div>
+
+          <!-- ========== ACTION BUTTONS ========== -->
+          <div class="px-8 py-5 border-t border-gray-100 flex items-center justify-end space-x-3">
+            <a href="{{ url_for('warehouse_settings') }}"
+               class="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300
+                      rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2
+                      focus:ring-offset-2 focus:ring-blue-500 transition-all">
+              Cancel
+            </a>
+            <button
+              type="submit"
+              class="px-6 py-2 text-sm font-semibold text-white bg-blue-600 border border-transparent
+                     rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2
+                     focus:ring-offset-2 focus:ring-blue-500 transition-all">
+              Save Changes
+            </button>
+          </div>
+
+        </form>
+      </div>
+      <!-- END SETTINGS CARD -->
+
+    </div>
+  </main>
+  <!-- END MAIN CONTENT -->
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="py-8 border-t border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+      <p class="text-sm text-gray-400">© 2023 CoreInventory SaaS Solutions. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- ============ JAVASCRIPT: Toggle switch ============ -->
+  <script>
+    const toggle = document.getElementById('operationalToggle');
+    const label  = document.getElementById('toggleLabel');
+
+    // Visual feedback (already handled by CSS), but we can add aria or state text if needed.
+    toggle.addEventListener('change', function () {
+      // Optionally update aria or a status badge here
+      console.log('Operational Status:', this.checked ? 'Active' : 'Inactive');
+    });
+  </script>
+
+</body>
+</html>
