@@ -1,0 +1,7 @@
+flask
+flask-sqlalchemy
+flask-mail
+pymysql
+cryptography
+werkzeug
+python-dotenv
