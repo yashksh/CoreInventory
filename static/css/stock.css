@@ -1,0 +1,80 @@
+/* ============================================================
+   CoreInventory – Stock Page Stylesheet
+   Exact card-shadow from spec + modal animations + row FX
+   ============================================================ */
+
+.card-shadow {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+              0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Table row entrance ──────────────────────────────────────── */
+@keyframes rowFadeIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+#stockTableBody tr {
+  animation: rowFadeIn 0.25s ease both;
+}
+
+#stockTableBody tr:nth-child(1)  { animation-delay: 0.00s; }
+#stockTableBody tr:nth-child(2)  { animation-delay: 0.04s; }
+#stockTableBody tr:nth-child(3)  { animation-delay: 0.08s; }
+#stockTableBody tr:nth-child(4)  { animation-delay: 0.12s; }
+#stockTableBody tr:nth-child(5)  { animation-delay: 0.16s; }
+#stockTableBody tr:nth-child(6)  { animation-delay: 0.20s; }
+#stockTableBody tr:nth-child(7)  { animation-delay: 0.24s; }
+#stockTableBody tr:nth-child(8)  { animation-delay: 0.28s; }
+#stockTableBody tr:nth-child(9)  { animation-delay: 0.32s; }
+#stockTableBody tr:nth-child(10) { animation-delay: 0.36s; }
+
+/* ── Insight cards entrance ──────────────────────────────────── */
+@keyframes cardSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.grid > div {
+  animation: cardSlideUp 0.35s ease both;
+}
+.grid > div:nth-child(1) { animation-delay: 0.1s; }
+.grid > div:nth-child(2) { animation-delay: 0.2s; }
+.grid > div:nth-child(3) { animation-delay: 0.3s; }
+
+/* ── Modal backdrop + box ────────────────────────────────────── */
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-box {
+  animation: modalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Toast show/hide ─────────────────────────────────────────── */
+#toast.show {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  pointer-events: auto !important;
+}
+
+/* ── Search input clear icon ─────────────────────────────────── */
+#searchInput::-webkit-search-cancel-button { display: none; }
+
+/* ── Spinning sync icon on update button ─────────────────────── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.spin-icon {
+  display: inline-block;
+  animation: spin 0.6s linear infinite;
+}
+
+/* ── Number flash on stat update ─────────────────────────────── */
+@keyframes numFlash {
+  0%   { opacity: 0.3; transform: scale(0.9); }
+  60%  { opacity: 1;   transform: scale(1.05); }
+  100% { opacity: 1;   transform: scale(1); }
+}
+.num-flash { animation: numFlash 0.3s ease both; }

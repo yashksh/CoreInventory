@@ -1,0 +1,32 @@
+/* ============================================================
+   CoreInventory – Operation Detail Page Styles
+   ============================================================ */
+
+/* Print styles */
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff !important; }
+  main { padding: 0 !important; }
+  .bg-white { box-shadow: none !important; border: 1px solid #e5e7eb !important; }
+}
+
+/* Toast animation */
+#toast.show {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Card shadow */
+.card-shadow {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Spin icon for loading states */
+@keyframes spin-icon {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.spin-icon {
+  animation: spin-icon 0.8s linear infinite;
+}
