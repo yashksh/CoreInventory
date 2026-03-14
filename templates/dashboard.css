@@ -1,0 +1,307 @@
+/* =============================================
+   CoreInventory Dashboard — dashboard.css
+   ============================================= */
+
+:root {
+    --ci-blue:        #1a9fd4;
+    --ci-blue-dark:   #0e6fa0;
+    --ci-blue-header: #0d7fb5;
+    --ci-bg:          #f0f2f5;
+    --ci-white:       #ffffff;
+    --ci-border:      #e2e8f0;
+    --ci-text:        #2d3748;
+    --ci-muted:       #718096;
+    --ci-late:        #e53e3e;
+    --ci-late-bg:     #fff5f5;
+    --ci-waiting:     #d69e2e;
+    --ci-waiting-bg:  #fffff0;
+    --ci-ops-bg:      #f7fafc;
+    --ci-shadow:      0 2px 12px rgba(0,0,0,0.07);
+    --ci-radius:      14px;
+    --ci-radius-btn:  10px;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    background-color: var(--ci-bg);
+    color: var(--ci-text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── NAVBAR ─────────────────────────────────── */
+.ci-navbar {
+    background: var(--ci-white);
+    border-bottom: 1px solid var(--ci-border);
+    padding: 0.65rem 0;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.ci-brand {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--ci-blue) !important;
+    letter-spacing: -0.3px;
+    text-decoration: none;
+}
+
+.ci-nav-link {
+    color: var(--ci-muted) !important;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0.45rem 0.85rem !important;
+    border-radius: 6px;
+    transition: color 0.18s, background 0.18s;
+    position: relative;
+}
+
+.ci-nav-link:hover {
+    color: var(--ci-text) !important;
+    background: var(--ci-bg);
+}
+
+.ci-nav-link.active {
+    color: var(--ci-text) !important;
+    font-weight: 600;
+}
+
+.ci-nav-link.active::after {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 2.5px;
+    background: var(--ci-blue);
+    border-radius: 2px;
+}
+
+.ci-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--ci-blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.ci-avatar:hover { opacity: 0.85; }
+
+/* ── MAIN ────────────────────────────────────── */
+.ci-main {
+    flex: 1;
+    padding: 2.5rem 0 2rem;
+}
+
+/* ── CARDS ───────────────────────────────────── */
+.ci-card {
+    background: var(--ci-white);
+    border-radius: var(--ci-radius);
+    box-shadow: var(--ci-shadow);
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+}
+
+.ci-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.11);
+}
+
+.ci-card-header {
+    background: var(--ci-blue-header);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    padding: 1rem 1.5rem;
+    letter-spacing: 0.01em;
+}
+
+.ci-card-body {
+    padding: 1.5rem;
+}
+
+/* ── PRIMARY BUTTON ──────────────────────────── */
+.ci-primary-btn {
+    display: block;
+    width: 100%;
+    background: var(--ci-blue);
+    color: #fff !important;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-align: center;
+    padding: 0.9rem 1.2rem;
+    border-radius: var(--ci-radius-btn);
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.18s, transform 0.12s;
+    letter-spacing: 0.01em;
+}
+
+.ci-primary-btn:hover {
+    background: var(--ci-blue-dark);
+    transform: translateY(-1px);
+}
+
+.ci-primary-btn:active {
+    transform: translateY(0);
+}
+
+/* ── STATS ROW ───────────────────────────────── */
+.ci-stats-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.ci-stat-badge {
+    flex: 1;
+    min-width: 70px;
+    border-radius: 8px;
+    padding: 0.65rem 0.8rem;
+    text-align: center;
+}
+
+.ci-stat-late    { background: var(--ci-late-bg); }
+.ci-stat-waiting { background: var(--ci-waiting-bg); }
+.ci-stat-ops     { background: var(--ci-ops-bg); }
+
+.ci-stat-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.ci-stat-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin-top: 0.15rem;
+    opacity: 0.85;
+}
+
+/* ── LEGEND CARD ─────────────────────────────── */
+.ci-legend-card {
+    background: var(--ci-white);
+    border-radius: var(--ci-radius);
+    box-shadow: var(--ci-shadow);
+    overflow: hidden;
+}
+
+.ci-legend-header {
+    padding: 0.9rem 1.25rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--ci-muted);
+    border-bottom: 1px solid var(--ci-border);
+    display: flex;
+    align-items: center;
+}
+
+.ci-legend-body {
+    padding: 1.1rem 1.25rem;
+}
+
+.ci-legend-item {
+    margin-bottom: 1rem;
+}
+
+.ci-legend-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.ci-legend-desc {
+    font-size: 0.78rem;
+    color: var(--ci-muted);
+    margin-top: 0.1rem;
+    line-height: 1.4;
+}
+
+/* ── FOOTER ──────────────────────────────────── */
+.ci-footer {
+    text-align: center;
+    padding: 1.25rem;
+    font-size: 0.78rem;
+    color: var(--ci-muted);
+    border-top: 1px solid var(--ci-border);
+    background: var(--ci-white);
+}
+
+/* ── OPERATIONS DROPDOWN ─────────────────────── */
+.ci-dropdown-menu {
+    border: 1px solid var(--ci-border);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+    padding: 0.5rem 0.4rem;
+    min-width: 200px;
+    margin-top: 6px !important;
+}
+
+.ci-dropdown-section-label {
+    font-size: 0.67rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    color: var(--ci-muted);
+    padding: 0.4rem 0.85rem 0.5rem;
+    text-transform: uppercase;
+}
+
+.ci-dropdown-item {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ci-text) !important;
+    border-radius: 7px;
+    padding: 0.55rem 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    transition: background 0.15s, color 0.15s;
+}
+
+.ci-dropdown-item:hover {
+    background: var(--ci-bg) !important;
+    color: var(--ci-blue) !important;
+}
+
+.ci-drop-icon {
+    width: 16px;
+    text-align: center;
+    color: var(--ci-blue);
+    font-size: 0.8rem;
+}
+
+.ci-divider {
+    margin: 0.3rem 0.5rem;
+    border-color: var(--ci-border);
+}
+
+/* Keep dropdown toggle arrow subtle */
+.ci-dropdown .dropdown-toggle::after {
+    margin-left: 5px;
+    vertical-align: middle;
+    border-top-color: var(--ci-muted);
+}
+
+/* ── RESPONSIVE ──────────────────────────────── */
+@media (max-width: 768px) {
+    .ci-main { padding: 1.5rem 0 1.5rem; }
+    .ci-stats-row { gap: 0.5rem; }
+    .ci-stat-badge { padding: 0.5rem 0.6rem; }
+    .ci-stat-value { font-size: 1.1rem; }
+}
