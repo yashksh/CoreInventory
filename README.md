@@ -40,7 +40,7 @@ To run this application locally, you will need:
 
 1. **Clone the project** (or download and extract the source code):
    ```bash
-   git clone <your-repository-url>
+   git clone https://github.com/yashksh/CoreInventory.git
    cd CoreInventory
    ```
 
